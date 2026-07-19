@@ -1,0 +1,18 @@
+NODE REPL means Read , Evaluate,print , loop
+nodejs is javascript runtime enviroment
+node js have v8 js engin in it
+
+
+By Default modules protect their variables and functions from leaking
+
+commonjs modules (CJS) old approach will expire soon
+ES modules (mjs) new way
+
+
+require("./path")
+All the code of modules is wrapped inside a function(IIFE)
+IIFE Immediately Invoked Function Expression    
+
+function(){
+    
+}

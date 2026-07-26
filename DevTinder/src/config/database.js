@@ -1,6 +1,8 @@
+const path = require('path');
 const dns = require('dns');
 const mongoose = require('mongoose');
-require('dotenv').config();
+// Load DevTinder/.env even if node is started from repo root
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
 // Node on this machine was resolving DNS via 127.0.0.1 (nothing listening),
 // which caused: querySrv ECONNREFUSED _mongodb._tcp...

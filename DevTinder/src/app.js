@@ -45,6 +45,33 @@ try {
   }
 });
 
+app.post('/login',async(req,res)=>{
+  try{
+      const {emailId,password} = req.body;
+      if(!emailId || !validator.isEmail(emailId) ){
+          throw new Error ("Email is not valid")
+      }
+      else if(!password || !validator.isStrongPassword(password)){
+          throw new Error ("Password is not valid")
+      }
+      else{
+        const user = await User.findOne({emailId:emailId});
+        if(!user){
+          throw new Error ("User Not Found")
+        }
+        const isPasswordValid = await bcrypt.compare(password,user.password)
+        if(!isPasswordValid){
+          throw new Error ("Password is not valid")
+        }
+        res.status(201).send({message:"Login Successfull",user:user})
+      }
+
+  }
+  catch(err){
+    res.status(400).send({error:err.message})
+  }
+})
+
 
 
 app.get('/users',async (req,res)=>{
@@ -119,6 +146,7 @@ app.delete('/users', async (req, res) => {
   }
 });
 
+
 app.patch('/users/:userId',async(req,res)=>{
   const userId = req.params?.userId; 
   const data = req.body;
@@ -142,6 +170,7 @@ app.patch('/users/:userId',async(req,res)=>{
     res.status(400).send({error:err.message})
   }
 })
+
 connectDB()
   .then(() => {
     console.log('Database Connection is Successful')

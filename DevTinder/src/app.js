@@ -3,12 +3,18 @@ const connectDB = require('./config/database');
 const app = express();
 const User = require('./models/user');
 const { ReturnDocument } = require('mongodb');
+const { validateSignUpData } = require('./utils/validations');
+const bcrypt = require('bcrypt');
 
 // Without this, req.body is undefined for JSON requests from Postman
 app.use(express.json());
 
 app.post('/signup', async (req, res) => {
-  try {
+try {
+  validateSignUpData(req);
+
+
+  
     // If this is missing, Postman body is wrong OR server wasn't restarted
     if (!req.body || Object.keys(req.body).length === 0) {
       return res.status(400).send({
@@ -18,15 +24,18 @@ app.post('/signup', async (req, res) => {
       });
     }
 
-    const { firstName, lastName, emailId, password, age, gender } = req.body;
-
+    const { firstName, lastName, emailId, age, gender,about,password } = req.body;
+    
+    const passwordHash = await bcrypt.hash(password, 3);
+    console.log("Password Hashed",passwordHash)
     const user = new User({
       firstName,
       lastName,
       emailId,
-      password,
+      password: passwordHash,
       age,
       gender,
+      about
     });
     // Don't use .then((res) => ...) — it shadows Express `res`
     const savedUser = await user.save();
@@ -36,33 +45,7 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-// Find user by email (GET: prefer query, also accept JSON body)
-// Postman: GET http://localhost:3000/users?emailId=hetaljsohi@gmail.com
-// app.get('/users', async (req, res) => {
-//   try {
-//     const userEmailId = req.query.emailId || req.body?.emailId;
 
-//     if (!userEmailId) {
-//       return res.status(400).send({
-//         error: 'emailId is required. Use query: /users?emailId=you@example.com',
-//       });
-//     }
-
-//     // Don't name the result `res` — that overwrites Express response and breaks send()
-//     const user = await User.findOne({ emailId: userEmailId });
-
-//     if (!user) {
-//       return res.status(404).send({
-//         error: 'User not found',
-//         emailId: userEmailId,
-//       });
-//     }
-
-//     res.status(200).send({ message: 'User Fetched Successfully', user });
-//   } catch (err) {
-//     res.status(400).send({ error: err.message });
-//   }
-// });
 
 app.get('/users',async (req,res)=>{
     try{
@@ -136,17 +119,21 @@ app.delete('/users', async (req, res) => {
   }
 });
 
-app.patch('/users',async(req,res)=>{
+app.patch('/users/:userId',async(req,res)=>{
+  const userId = req.params?.userId; 
   const data = req.body;
 
   try{
 
-  const ALLOWEDUPDATES = ["photoUrl","about","gender","age","_id","skills"];
+  const ALLOWEDUPDATES = ["photoUrl","about","gender","age","skills"];
   const isUpdateAllowed = Object.keys(data).every((k)=>ALLOWEDUPDATES.includes(k));
   
   if(!isUpdateAllowed){throw new Error  ("Update Not Allowed")}
+  if(data?.skills.length >10){
+    throw new Error ("Skills Cannot be more  than 10");
+  }
 
-   let updatedUsr =  await User.findByIdAndUpdate({_id:data._id},data,{returnDocument:"before",runValidators:true});
+   let updatedUsr =  await User.findByIdAndUpdate({_id:userId},data,{returnDocument:"before",runValidators:true});
    console.log(updatedUsr)
     res.status(201).send('User Updated Successfully',updatedUsr)
     

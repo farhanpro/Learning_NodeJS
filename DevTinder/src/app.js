@@ -5,9 +5,14 @@ const User = require('./models/user');
 const { ReturnDocument } = require('mongodb');
 const { validateSignUpData } = require('./utils/validations');
 const bcrypt = require('bcrypt');
+const validator = require('validator');
+const cookieParser = require('cookie-parser');
+const jwt = require('jsonwebtoken');
+const {userAuth} = require('./middlewares/auth');
 
 // Without this, req.body is undefined for JSON requests from Postman
 app.use(express.json());
+app.use(cookieParser());
 
 app.post('/signup', async (req, res) => {
 try {
@@ -45,131 +50,64 @@ try {
   }
 });
 
-app.post('/login',async(req,res)=>{
-  try{
-      const {emailId,password} = req.body;
-      if(!emailId || !validator.isEmail(emailId) ){
-          throw new Error ("Email is not valid")
-      }
-      else if(!password || !validator.isStrongPassword(password)){
-          throw new Error ("Password is not valid")
-      }
-      else{
-        const user = await User.findOne({emailId:emailId});
-        if(!user){
-          throw new Error ("User Not Found")
-        }
-        const isPasswordValid = await bcrypt.compare(password,user.password)
-        if(!isPasswordValid){
-          throw new Error ("Password is not valid")
-        }
-        res.status(201).send({message:"Login Successfull",user:user})
-      }
-
-  }
-  catch(err){
-    res.status(400).send({error:err.message})
-  }
-})
-
-
-
-app.get('/users',async (req,res)=>{
-    try{
-        const usersEmail = req.body?.emailId ;
-        const users = await User.find({emailId:usersEmail});
-        if(user.length === 0){
-
-            res.status(404).send('User not found')
-        }
-        else{
-            res.status(201).send(users)
-        }
-    }
-    catch(err){
-        res.status(401).send(err);
-    }
-})
-app.get('/feed',async (req,res)=>{
-  debugger;
-  
-    try{
-        
-        const users = await User.find({});
-        if(users.length === 0){
-
-            res.status(404).send('User not found')
-        }
-        else{
-            res.status(201).send(users)
-        }
-    }
-    catch(err){
-        res.status(401).send(err);
-    }
-})
-
-// Delete user by MongoDB _id
-// Postman: DELETE http://localhost:3000/users
-// Body → raw → JSON: { "userId": "67abc..." }
-// (use the document's _id from /feed or signup response — not email)
-app.delete('/users', async (req, res) => {
+// Prefer POST for login (body with credentials). GET also works in Postman.
+app.post('/login', async (req, res) => {
   try {
-    debugger;
-    const userId = req.body?.userId || req.query.userId;
+    const { emailId, password } = req.body;
 
-    if (!userId) {
-      return res.status(400).send({
-        error:
-          'userId is required. Body → raw → JSON: { "userId": "<MongoDB _id>" }',
-        receivedBody: req.body,
-      });
+    if (!emailId || !validator.isEmail(emailId)) {
+      throw new Error('Email is not valid');
+    }
+    if (!password || !validator.isStrongPassword(password)) {
+      throw new Error('Password is not valid');
     }
 
-    // findByIdAndDelete returns null when no document matches — that is NOT success
-    const deletedUser = await User.findByIdAndDelete(userId);
-
-    if (!deletedUser) {
-      return res.status(404).send({
-        error: 'User not found. Nothing was deleted.',
-        userId,
-      });
+    const user = await User.findOne({ emailId });
+    if (!user) {
+      throw new Error('User Not Found');
     }
 
-    res.status(200).send({
-      message: 'User deleted successfully',
-      user: deletedUser,
-    });
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (isPasswordValid) {
+      //Create JWT token
+      const token = await jwt.sign({_id:user._id},'DEV@Tinder$790',{expiresIn:'7d'});
+      console.log("JWT Token",token);
+    // Cookie must be set on SUCCESS — before res.send()
+    // (Previously this was inside the failed-password branch, so Postman never got a cookie on login)
+    res.cookie('token', token, {httpOnly: true, // not readable by JS in browser; still visible in Postman Cookies / Headers// maxAge: 24 * 60 * 60 * 1000, // optional: 1 day  
+    })}
+
+    if (!isPasswordValid) {
+      throw new Error('Password is not valid');
+    }
+
+
+
+    res.status(200).send({ message: 'Login Successfull', user });
   } catch (err) {
-    // Invalid ObjectId (wrong format) lands here
     res.status(400).send({ error: err.message });
   }
 });
 
-
-app.patch('/users/:userId',async(req,res)=>{
-  const userId = req.params?.userId; 
-  const data = req.body;
-
+app.post('/profile',userAuth ,async(req,res)=>{
   try{
-
-  const ALLOWEDUPDATES = ["photoUrl","about","gender","age","skills"];
-  const isUpdateAllowed = Object.keys(data).every((k)=>ALLOWEDUPDATES.includes(k));
-  
-  if(!isUpdateAllowed){throw new Error  ("Update Not Allowed")}
-  if(data?.skills.length >10){
-    throw new Error ("Skills Cannot be more  than 10");
-  }
-
-   let updatedUsr =  await User.findByIdAndUpdate({_id:userId},data,{returnDocument:"before",runValidators:true});
-   console.log(updatedUsr)
-    res.status(201).send('User Updated Successfully',updatedUsr)
-    
-  }
+      const user = req.user;
+      res.status(200).send({message:"Profile Page",loggedInUser:user})
+      
+    }
   catch(err){
-    res.status(400).send({error:err.message})
+      res.status(400).send({error:err.message})
   }
+
+
 })
+
+app.post('/sendConnectionRequest',userAuth,async(req,res)=>{
+  //Sending a Connection Request 
+  const user = req.user;
+  console.log("Sending a Connection Request");
+  res.send({message:"Connection Request Sent"});
+}) 
 
 connectDB()
   .then(() => {

@@ -19,9 +19,12 @@ const authRouter =  require("../src/routes/auth");
 const profileRouter =  require("./routes/profileRouter");
 const requestRouter =  require("./routes/requestRouter");
 
+// Mount at "/" and keep the full path on each router
+// (e.g. /profile/edit). Prefix-mounting + repeating /profile
+// was registering /profile/profile/edit instead.
 app.use('/', authRouter);
-app.use('/profile', profileRouter);
-app.use('/requests', requestRouter);
+app.use('/', profileRouter);
+app.use('/', requestRouter);
 
 
 connectDB()

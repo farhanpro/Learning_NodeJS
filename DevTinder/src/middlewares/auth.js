@@ -14,47 +14,27 @@ const adminAuth =(req,res,next)=>{
 }
 
 const userAuth = async (req,res,next)=>{
-
-
     try{
-        //This is used to Read the  token from the request 
-    //validate the token
-    //Find the user
-    const cookies = req.cookies;
-    const {token} = cookies;
-    const decodedMessage = await jwt.verify(token,'DEV@Tinder$790');
-    //Validate the token 
-    //Find the user
-    const {_id} = decodedMessage;
-    const user =  await User.findById({_id});
+        const { token } = req.cookies || {};
 
-    if(!user){
-        res.status(401).send({error:'Unauthorized Access'});
-    }
+        if (!token) {
+            return res.status(401).send({ error: 'Please login first' });
+        }
 
-    if(!token){
-        res.status(401).send({error:'Unauthorized Access'});
-    }
+        const decodedMessage = await jwt.verify(token, 'DEV@Tinder$790');
+        const { _id } = decodedMessage;
+        const user = await User.findById(_id);
 
-    req.user = user;
-    next();
-    
+        if (!user) {
+            return res.status(401).send({ error: 'Unauthorized Access' });
+        }
 
-
-    console.log('User Authentication MiddleWare');
-    
-    const isAuthUser = token === 'X-User-Token';
-    if(!isAuthUser){
-        res.status(401).send({error:'Unauthorized Access'});
-    }
-    else{
+        req.user = user;
         next();
     }
-    }
     catch(err){
-        res.status(401).send({error:'Unauthorized Access'});
+        res.status(401).send({ error: 'Unauthorized Access' });
     }
-    
 }
 
 

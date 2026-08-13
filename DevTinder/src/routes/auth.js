@@ -4,6 +4,7 @@ const { validateSignUpData } = require('../utils/validations');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const validator = require('validator');
 
 
 authRoutes.post('/signup', async (req, res) => {
@@ -82,5 +83,12 @@ authRoutes.post('/login', async (req, res) => {
     res.status(400).send({ error: err.message });
   }
 });
+
+authRoutes.post('/logout',async(req,res)=>{
+  res.cookie("token",null,{
+    expires: new Date(Date.now())
+  })
+  res.status(200).send({Message: "User Logged out"})
+})
 
 module.exports = authRoutes;

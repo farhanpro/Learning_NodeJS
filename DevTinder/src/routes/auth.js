@@ -45,6 +45,7 @@ try {
 
 // Prefer POST for login (body with credentials). GET also works in Postman.
 authRoutes.post('/login', async (req, res) => {
+  
   try {
     const { emailId, password } = req.body;
 

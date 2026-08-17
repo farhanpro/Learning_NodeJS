@@ -1,7 +1,8 @@
 const express = require('express');
 const requestRouter = express.Router();
 const {userAuth} = require('../middlewares/auth');
-const ConnectionRequestModel = require('../models/connectionRequest')
+const ConnectionRequestModel = require('../models/connectionRequest');
+const User = require('../models/user');
 
 
 requestRouter.post('/request/send/:status/:toUserId',userAuth,async(req,res)=>{
@@ -25,8 +26,17 @@ requestRouter.post('/request/send/:status/:toUserId',userAuth,async(req,res)=>{
 
     if(existingConnectionRequest)
       {
-        return res.status(400).json({"Message":"Connection Request Already Exists"})
+        return res.status(400).json({message:req.user.firstName + " has already sent a connection request to " + toUserId})
       }
+
+      const toUser = await User.findOne({_id:toUserId});
+      if(!toUser){
+        return res.status(404).json({"Message":"User Not Found"})
+      }
+      // if(toUserId.toString() === fromUserId.toString()){
+      //   return res.status(400).json({"Message":"You cannot send connection request to yourself"})
+      // }
+      
 
     const connectionRequest = new ConnectionRequestModel({
       fromUserId,
@@ -38,7 +48,7 @@ requestRouter.post('/request/send/:status/:toUserId',userAuth,async(req,res)=>{
     res.status(201).json({
       message:"Connection Request sent Succesfully",
       data:data
-    }).send({"Message":"Connection Request send Succesfully"})
+    }).json({message:req.user.firstName + " is " + status + " to connect with " + toUser.firstName})
 
 
 
@@ -46,7 +56,7 @@ requestRouter.post('/request/send/:status/:toUserId',userAuth,async(req,res)=>{
   catch(err){
     res.status(400).send({error:err.message})
   }
-  res.send({message:"Connection Request Sent",user:user});
+  res.send({message:"Connection Request Sent",user:toUser  });
 }) 
 
 

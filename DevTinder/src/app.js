@@ -18,6 +18,7 @@ app.use(cookieParser());
 const authRouter =  require("../src/routes/auth");
 const profileRouter =  require("./routes/profileRouter");
 const requestRouter =  require("./routes/requestRouter");
+const userRouter = require("./routes/userRouter");
 
 // Mount at "/" and keep the full path on each router
 // (e.g. /profile/edit). Prefix-mounting + repeating /profile
@@ -25,6 +26,7 @@ const requestRouter =  require("./routes/requestRouter");
 app.use('/', authRouter);
 app.use('/', profileRouter);
 app.use('/', requestRouter);
+app.use('/', userRouter);
 
 
   connectDB()

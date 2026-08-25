@@ -2,6 +2,7 @@ const express = require('express');
 const userRouter = express.Router();
 const {userAuth} = require('../middlewares/auth'); 
 const ConnectionRequestModel = require('../models/connectionRequest');
+const User = require('../models/user')
 
 const USER_SAFE_DATA = "firstName lastName photoUrl age gender about skills";
 
@@ -56,6 +57,42 @@ userRouter.get('/user/connections',userAuth,async(req,res)=>{
         catch(err){
             res.status(400).send({error:err.message})
         }
+})
+
+
+userRouter.get('/user/feed:gender',userAuth,async(req,res)=>{
+    try{
+
+        let gender =req.params.gender;
+        let genderAllowed = ['male','female'];
+
+        console.log("Gender",gender); 
+
+        const Users = await  User.find({
+           
+        });
+        console.log("All Users", Users)
+       let Users2 =  Users.map((item)=>
+            {
+                return {
+                    "firstName": item.firstName,
+                    "lastName" : item.lastName,
+                    "age" : item.age,
+                    "photoUrl":item.photoUrl
+                }
+            }
+        )
+        
+
+            res.status(200).send({
+                "Feed":Users2
+            })
+    }
+    catch(err){
+        res.status(400).send({
+            message:err
+        })
+    }
 })
 
 

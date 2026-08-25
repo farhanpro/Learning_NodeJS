@@ -19,7 +19,7 @@ requestRouter.post('/request/send/:status/:toUserId',userAuth,async(req,res)=>{
       .status(400)
       .json({"Message" : "Invalid Status Type"})
     }
-
+ 
     
     const existingConnectionRequest = await ConnectionRequestModel.findOne({$or:[{fromUserId,toUserId},{fromUserId:toUserId,toUserId:fromUserId}]});
 

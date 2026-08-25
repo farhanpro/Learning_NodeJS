@@ -1,9 +1,17 @@
 const mongoose = require('mongoose');
 const connectionRequestSchema = new mongoose.Schema({
 
-    fromUserId:{type:mongoose.Schema.Types.ObjectId,required:true},
+    fromUserId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref : 'User', //Reference to the user collection
+        required:true
+    },
 
-    toUserId:{type:mongoose.Schema.Types.ObjectId,required:true},
+    toUserId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required:true
+    },
 
     status:{
         type:String,
@@ -17,6 +25,7 @@ const connectionRequestSchema = new mongoose.Schema({
 },{timestamps:true}
 );
 connectionRequestSchema.index({ fromUserId: 1, toUserId: 1 }, { unique: true });
+
 // Mongoose 9 no longer passes next() to pre middleware — throw or return a promise instead.
 connectionRequestSchema.pre('save', function () {
     const connectionRequest = this;

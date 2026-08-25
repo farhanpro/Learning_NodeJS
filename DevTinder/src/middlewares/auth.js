@@ -15,6 +15,7 @@ const adminAuth =(req,res,next)=>{
 
 const userAuth = async (req,res,next)=>{
     try{
+        debugger;
         const { token } = req.cookies || {};
 
         if (!token) {

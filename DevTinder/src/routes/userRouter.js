@@ -63,6 +63,11 @@ userRouter.get('/user/connections',userAuth,async(req,res)=>{
 userRouter.get('/user/feed',userAuth,async(req,res)=>{
     try{
         const loggedInUser = req.user;
+        const page = Math.max(parseInt(req.query.page) || 1, 1);
+        let limit = parseInt(req.query.limit) || 10;
+        if (limit > 50) limit = 50;
+        if (limit < 1) limit = 10;
+        const skip = (page - 1) * limit;
        
         //Find all the connection Request (Sent + recived)
        
@@ -71,22 +76,25 @@ userRouter.get('/user/feed',userAuth,async(req,res)=>{
         }).select("fromUserId toUserId");
 
         const hideUserFromFeed = new Set();
-        connectionRequest.forEach((req)=>{
-                hideUserFromFeed.add(req.fromUserId.toString());
-                hideUserFromFeed.add(req.fromUserId.toString());
+        connectionRequest.forEach((row)=>{
+                hideUserFromFeed.add(row.fromUserId.toString());
+                hideUserFromFeed.add(row.toUserId.toString());
         })
-        console.log(hideUserFromFeed);
         const user = await User.find({
             $and:[
                     {_id:{$nin:Array.from(hideUserFromFeed)}},
-                    {_id:{$ne:loggedInUser}}
+                    {_id:{$ne:loggedInUser._id}}
                 ]
         })
+        .select(USER_SAFE_DATA)
+        .skip(skip)
+        .limit(limit);
+
         res.status(200).send(user);
     }
     catch(err){
         res.status(400).send({
-            message:err
+            message:err.message
         })
     }
 })

@@ -60,33 +60,29 @@ userRouter.get('/user/connections',userAuth,async(req,res)=>{
 })
 
 
-userRouter.get('/user/feed:gender',userAuth,async(req,res)=>{
+userRouter.get('/user/feed',userAuth,async(req,res)=>{
     try{
+        const loggedInUser = req.user;
+       
+        //Find all the connection Request (Sent + recived)
+       
+        const connectionRequest =  await ConnectionRequestModel.find({
+            $or:[{fromUserId:loggedInUser},{toUserId:loggedInUser}]
+        }).select("fromUserId toUserId");
 
-        let gender =req.params.gender;
-        let genderAllowed = ['male','female'];
-
-        console.log("Gender",gender); 
-
-        const Users = await  User.find({
-           
-        });
-        console.log("All Users", Users)
-       let Users2 =  Users.map((item)=>
-            {
-                return {
-                    "firstName": item.firstName,
-                    "lastName" : item.lastName,
-                    "age" : item.age,
-                    "photoUrl":item.photoUrl
-                }
-            }
-        )
-        
-
-            res.status(200).send({
-                "Feed":Users2
-            })
+        const hideUserFromFeed = new Set();
+        connectionRequest.forEach((req)=>{
+                hideUserFromFeed.add(req.fromUserId.toString());
+                hideUserFromFeed.add(req.fromUserId.toString());
+        })
+        console.log(hideUserFromFeed);
+        const user = await User.find({
+            $and:[
+                    {_id:{$nin:Array.from(hideUserFromFeed)}},
+                    {_id:{$ne:loggedInUser}}
+                ]
+        })
+        res.status(200).send(user);
     }
     catch(err){
         res.status(400).send({

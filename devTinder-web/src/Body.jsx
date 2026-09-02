@@ -6,10 +6,12 @@ import Footer from "./Footer"
 
 const Body = () => {
   return (
-    <div>
-        <NavBar/>
-        <Outlet/>
-        <Footer/>
+    <div className="min-h-screen flex flex-col">
+      <NavBar />
+      <main className="flex-1 pb-24">
+        <Outlet />
+      </main>
+      <Footer />
     </div>
   )
 }

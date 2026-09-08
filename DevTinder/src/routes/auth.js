@@ -53,7 +53,8 @@ authRoutes.post('/login', async (req, res) => {
       throw new Error('Email is not valid');
     }
     if (!password) {
-      throw new Error('Password is not valid');
+     // throw new Error('Password is not valid');
+      res.status(400).send({ error: 'Password is not valid' });
     }
 
     const user = await User.findOne({ emailId });
@@ -70,8 +71,12 @@ authRoutes.post('/login', async (req, res) => {
       console.log("JWT Token",token);
     // Cookie must be set on SUCCESS — before res.send()
     // (Previously this was inside the failed-password branch, so Postman never got a cookie on login)
-    res.cookie('token', token, {httpOnly: true, // not readable by JS in browser; still visible in Postman Cookies / Headers// maxAge: 24 * 60 * 60 * 1000, // optional: 1 day  
-    })}
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: 'lax',
+      path: '/',
+    });
+    }
 
     if (!isPasswordValid) {
       throw new Error('Password is not valid');
@@ -81,7 +86,7 @@ authRoutes.post('/login', async (req, res) => {
 
     res.status(200).send({ message: 'Login Successfull', user });
   } catch (err) {
-    res.status(400).send({ error: err.message });
+    res.status(400).send({ error: err.message +"Farhan " });
   }
 });
 

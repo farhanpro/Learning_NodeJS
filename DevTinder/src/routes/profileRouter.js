@@ -5,6 +5,15 @@ const { validateEditProfileData } = require('../utils/validations');
 const bcrypt = require('bcrypt');
 
 
+profileRouter.get('/profile/view', userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    res.status(200).send(user);
+  } catch (err) {
+    res.status(400).send({ error: err.message });
+  }
+});
+
 profileRouter.post('/profile',userAuth ,async(req,res)=>{
   try{
       const user = req.user;

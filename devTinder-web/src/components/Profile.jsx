@@ -1,8 +1,9 @@
+import EditProfile from "./EditProfile"
 
 
 const Profile = () => {
   return (
-    <div>Profile</div>
+    <EditProfile/>
   )
 }
 

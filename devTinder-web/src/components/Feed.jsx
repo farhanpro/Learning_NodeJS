@@ -39,22 +39,7 @@ const Feed = () => {
   return (
     <div className="flex justify-center my-10">
     <UserCard user={user}/>
-      {/* <div className="card bg-base-300 w-96 shadow-xl">
-        <figure>
-          <img src={user.photoUrl} alt={user.firstName} />
-        </figure>
-        <div className="card-body">
-          <h2 className="card-title justify-center">
-            {user.firstName} {user.lastName}
-          </h2>
-          {user.age && user.gender && (
-            <p>
-              {user.age}, {user.gender}
-            </p>
-          )}
-          <p>{user.about}</p>
-        </div>
-      </div> */}
+    
     </div>
   );
 };

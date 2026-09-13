@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { BASE_URL } from "../utils/constants";
 import axios from "axios";
 import { removeUser } from "../utils/userSlice";
+import { removeConnections } from "../utils/connectionSlice";
+import { removeFeed } from "../utils/feedSlice";
 
 const NavBar = () => {
   const dispatch = useDispatch();
@@ -15,6 +17,8 @@ const NavBar = () => {
       const resp = await  axios.post(`${BASE_URL}/logout`,{}, { withCredentials: true });
       if(resp.status === 200){
         dispatch(removeUser());
+        dispatch(removeConnections());
+        dispatch(removeFeed());
         return navigate("/login");
       }
 
@@ -52,8 +56,13 @@ const NavBar = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/settings" className="justify-between">
-                  Settings
+                <Link to="/connections" className="justify-between">
+                  Connections
+                </Link>
+              </li>
+              <li>
+                <Link to="/connection-requests" className="justify-between">
+                  Connection Requests
                 </Link>
               </li>
               <li>

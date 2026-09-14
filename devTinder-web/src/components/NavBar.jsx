@@ -30,7 +30,7 @@ const NavBar = () => {
   return (
     <div className="navbar bg-base-100 shadow-sm">
       <div className="flex-1">
-        <a className="btn btn-ghost text-xl">👩‍💻DevTinder👨‍💻</a>
+        <a className="btn btn-ghost text-xl" > <Link to="/feed">👩‍💻DevTinder👨‍💻</Link></a>
       </div>
       {user && (
         <div className="flex gap-2 items-center">

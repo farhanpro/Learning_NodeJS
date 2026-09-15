@@ -37,7 +37,10 @@ try {
     });
     // Don't use .then((res) => ...) — it shadows Express `res`
     const savedUser = await user.save();
-    res.status(201).send({ message: 'User created successfully', user: savedUser });
+    const token = await user.getJWTToken();
+    console.log('JWT token',token);
+
+    res.status(201).cookie('token',token,{httpOnly:true,sameSite:'lax',path:'/'}).send({ message: 'User created successfully', user: savedUser });
   } catch (err) {
     res.status(400).send({ error: err.message });
   }

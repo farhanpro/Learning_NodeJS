@@ -39,20 +39,18 @@ userRouter.get('/user/connections',userAuth,async(req,res)=>{
                 .populate('fromUserId', USER_SAFE_DATA)
                 .populate('toUserId', USER_SAFE_DATA);
 
-                if(connections.length === 0)
-                {
-                    return res.status(200).send({message:"No Connections"})
-                }
-
                 // Each row has both users; return the other person, not yourself
-                const data = connections.map((row) => {
-                    if (row.fromUserId._id.toString() === loggedInUserId.toString()) {
-                        return row.toUserId;
-                    }
-                    return row.fromUserId;
-                });
+                const data = connections
+                    .map((row) => {
+                        if (!row.fromUserId || !row.toUserId) return null;
+                        if (row.fromUserId._id.toString() === loggedInUserId.toString()) {
+                            return row.toUserId;
+                        }
+                        return row.fromUserId;
+                    })
+                    .filter(Boolean);
 
-                res.status(200).send({ Connections: data });
+                res.status(200).send({ data });
         }
         catch(err){
             res.status(400).send({error:err.message})

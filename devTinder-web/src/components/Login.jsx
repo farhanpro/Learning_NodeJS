@@ -16,21 +16,26 @@ const Login = () => {
   const [lastName, setLastName] = useState("");
 
   const [toggleSingup, setToggleSingup] = useState(false);
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+    setShowErrorPopup(false);
     try {
-      const resp =  await axios.post(`${BASE_URL}/login`,{emailId: email,password: password,},
-        { withCredentials: true },
+      const resp = await axios.post(
+        `${BASE_URL}/login`,
+        { emailId: email, password: password },
+        { withCredentials: true }
       );
-      console.log("Response", resp);
       dispatch(addUser(resp.data.user));
       return navigate("/feed");
     } catch (err) {
-      // console.log("Error is this", JSON.parse(err.response.data.message));
-      setError(err || "Something went wrong");
+      setError("Invalid login ID and password");
+      setShowErrorPopup(true);
     }
   };
+
   const handleSingup = async (e)=>{
     e.preventDefault();
     try{
@@ -54,7 +59,7 @@ const Login = () => {
     <div className="flex justify-center my-10">
       <div className="card bg-base-300 w-96 shadow-xl">
         <div className="card-body">
-          <fieldset className="fieldset bg-base-100 border-base-300 rounded-box w-64 border p-4">
+          <fieldset className="fieldset bg-base-100 border-base-300 rounded-box w-full border p-4">
             <legend className="fieldset-legend">Login options</legend>
             <label className="label">
               <input
@@ -195,14 +200,36 @@ const Login = () => {
             </fieldset>
 
             <div className="card-actions justify-center m-2">
-              <p className="text-error">{error}</p>
               <button type="submit" className="btn btn-primary">
-                Login
+                {toggleSingup ? "Signup" : "Login"}
               </button>
             </div>
           </form>
         </div>
       </div>
+
+      {showErrorPopup && (
+        <dialog className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="text-lg font-bold text-error">Login failed</h3>
+            <p className="py-4">{error || "Invalid login ID and password"}</p>
+            <div className="modal-action">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setShowErrorPopup(false)}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+          <form method="dialog" className="modal-backdrop">
+            <button type="button" onClick={() => setShowErrorPopup(false)}>
+              close
+            </button>
+          </form>
+        </dialog>
+      )}
     </div>
   );
 };
